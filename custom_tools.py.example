@@ -1,0 +1,26 @@
+"""
+Example custom tools for OLLM.
+Copy this file to `custom_tools.py` in your working directory or `~/.config/ollm/tools.py`.
+OLLM automatically loads and registers functions decorated with `@tool`.
+"""
+import subprocess
+
+# The `@tool` decorator is injected dynamically by OLLM upon import.
+
+@tool(
+    name="git_summary",
+    description="Get branch name, commit count, and status summary.",
+    usage_example="<tool:git_summary />"
+)
+def git_summary() -> str:
+    branch = subprocess.getoutput("git rev-parse --abbrev-ref HEAD 2>/dev/null") or "not a git repo"
+    status = subprocess.getoutput("git status --short 2>/dev/null") or "clean"
+    return f"Branch: {branch}\nStatus:\n{status}"
+
+@tool(
+    name="weather",
+    description="Simulate local sensor temperature or fetch offline cached telemetry.",
+    usage_example="<tool:weather city=\"Local\" />"
+)
+def weather(city: str = "Local") -> str:
+    return f"[{city}] Offline Mode: 21°C, clear sky."
