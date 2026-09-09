@@ -4,6 +4,7 @@ Handles sliding window summarization and dynamic on-demand tool activation.
 """
 import sys
 import re
+import time
 import threading
 from typing import List, Dict, Optional
 from .config import (
@@ -17,6 +18,46 @@ from .config import (
 from .tools import registry, parse_and_execute, load_custom_tools
 from .engine import InferenceEngine
 from .voice import StreamingVoiceEngine
+
+class StreamingANSIFormatter:
+    """Stateful streaming filter that formats markdown (bolding, inline code) directly to ANSI colors."""
+    def __init__(self):
+        self.buf = ""
+        self.bold = False
+        self.code = False
+
+    def feed(self, text: str) -> str:
+        self.buf += text
+        out = []
+        i = 0
+        n = len(self.buf)
+        while i < n:
+            if self.buf[i:i+2] == "**":
+                self.bold = not self.bold
+                out.append("\033[1m" if self.bold else "\033[22m")
+                i += 2
+                continue
+            elif self.buf[i] == "`":
+                self.code = not self.code
+                out.append("\033[38;5;180m" if self.code else "\033[0m")
+                i += 1
+                continue
+            elif i == n - 1 and self.buf[i] == "*":
+                break
+            else:
+                out.append(self.buf[i])
+                i += 1
+        self.buf = self.buf[i:]
+        return "".join(out)
+
+    def flush(self) -> str:
+        res = self.buf
+        if self.bold:
+            res += "\033[22m"
+        if self.code:
+            res += "\033[0m"
+        self.buf = ""
+        return res
 
 class Agent:
     def __init__(self, config: OLLMConfig, engine: InferenceEngine):
@@ -144,7 +185,7 @@ class Agent:
         Executes a turn. Streams tokens with live formatting, supports Ctrl+C interruption,
         optionally dispatches tools if enabled, and triggers background context compression.
         """
-                # Halt any active voice playback from prior turns
+        # Halt any active voice playback from prior turns
         self.voice.stop()
 
         with self._lock:
@@ -156,17 +197,19 @@ class Agent:
         while step < self.config.max_steps:
             step += 1
             accumulated_tokens: List[str] = []
-
             with self._lock:
                 snapshot = list(self.history)
 
             formatter = StreamingANSIFormatter()
             interrupted = False
             sentence_buf = ""
+            t_start = time.perf_counter()
+            token_count = 0
 
             # Stream generation with formatting, voice chunking, and Ctrl+C interrupt handling
             try:
                 for token in self.engine.stream_chat(snapshot):
+                    token_count += 1
                     accumulated_tokens.append(token)
                     if stream_callback:
                         stream_callback(token)
@@ -203,6 +246,14 @@ class Agent:
                 if not stream_callback:
                     sys.stdout.write(f"\033[0m\n{COLOR_DIM}[interrupted]{COLOR_RESET}\n")
                     sys.stdout.flush()
+
+            t_elapsed = time.perf_counter() - t_start
+            tok_sec = token_count / t_elapsed if t_elapsed > 0 else 0.0
+
+            # Live honest telemetry footer computed on actual clock time
+            if not self.config.quiet and not stream_callback and token_count > 0:
+                sys.stdout.write(f"\n{COLOR_DIM}⚡ {tok_sec:.1f} tok/s │ {token_count} tokens │ {t_elapsed:.1f}s │ Turns: {len(self.history)}{COLOR_RESET}\n")
+                sys.stdout.flush()
 
             full_response = "".join(accumulated_tokens)
             final_text = full_response

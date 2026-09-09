@@ -60,7 +60,7 @@ KNOWN_MODELS = [
         "file": "Llama-3.2-1B-Instruct-Q4_K_M.gguf",
         "size": "~0.8 GB",
         "req_ram": 1.5,
-        "desc": "Ultra-light (~15-20 tok/s, instant start, <1GB RAM)",
+        "desc": "Meta Llama-3.2 1.2B Params │ 4-bit Medium │ Ultra-low RAM & battery efficient",
         "url": "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf"
     },
     {
@@ -69,7 +69,7 @@ KNOWN_MODELS = [
         "file": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
         "size": "~1.0 GB",
         "req_ram": 2.0,
-        "desc": "Compact logic & coding prodigy (~12 tok/s, Alibaba)",
+        "desc": "Alibaba Qwen-2.5 1.54B Params │ 4-bit Medium │ Math, code & dense logic specialist",
         "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
     },
     {
@@ -78,7 +78,7 @@ KNOWN_MODELS = [
         "file": "Llama-3.2-3B-Instruct-abliterated.Q4_K_M.gguf",
         "size": "~2.0 GB",
         "req_ram": 3.5,
-        "desc": "Fast everyday companion (~6-8 tok/s, uncensored, witty)",
+        "desc": "Meta Llama-3.2 3.21B Params │ Abliterated / Uncensored │ Fast everyday companion",
         "url": "https://huggingface.co/mradermacher/Llama-3.2-3B-Instruct-abliterated-GGUF/resolve/main/Llama-3.2-3B-Instruct-abliterated.Q4_K_M.gguf"
     },
     {
@@ -87,7 +87,7 @@ KNOWN_MODELS = [
         "file": "Llama-3.1-8B-Instruct-abliterated.Q3_K_M.gguf",
         "size": "~3.8 GB",
         "req_ram": 5.5,
-        "desc": "Deep reasoning & knowledge (~1.5-3 tok/s, uncensored)",
+        "desc": "Meta Llama-3.1 8.03B Params │ Abliterated / Uncensored │ Broad world knowledge",
         "url": "https://huggingface.co/mradermacher/Llama-3.1-8B-Instruct-abliterated-GGUF/resolve/main/Llama-3.1-8B-Instruct-abliterated.Q3_K_M.gguf"
     },
     {
@@ -96,7 +96,7 @@ KNOWN_MODELS = [
         "file": "Mistral-7B-Instruct-v0.3-abliterated.Q4_K_M.gguf",
         "size": "~4.3 GB",
         "req_ram": 6.5,
-        "desc": "Flagship European LLM, abliterated weights, high reasoning",
+        "desc": "Mistral AI 7.25B Params │ Abliterated / Uncensored │ High-grade European flagship",
         "url": "https://huggingface.co/mradermacher/Mistral-7B-Instruct-v0.3-abliterated-GGUF/resolve/main/Mistral-7B-Instruct-v0.3-abliterated.Q4_K_M.gguf"
     },
     {
@@ -105,7 +105,7 @@ KNOWN_MODELS = [
         "file": "DeepSeek-R1-Distill-Qwen-7B.Q4_K_M.gguf",
         "size": "~4.7 GB",
         "req_ram": 7.0,
-        "desc": "Deep reasoning expert (step-by-step thinking tokens)",
+        "desc": "DeepSeek R1 Reasoning Model │ Chain-of-thought tokens │ Deep analysis & math",
         "url": "https://huggingface.co/mradermacher/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B.Q4_K_M.gguf"
     },
     {
@@ -114,7 +114,7 @@ KNOWN_MODELS = [
         "file": "Qwen2.5-14B-Instruct-abliterated.Q3_K_M.gguf",
         "size": "~7.5 GB",
         "req_ram": 10.5,
-        "desc": "Heavy expert model (elite coding & complex reasoning)",
+        "desc": "Qwen-2.5 14.77B Heavy Expert │ Abliterated │ Production-grade software architecture",
         "url": "https://huggingface.co/mradermacher/Qwen2.5-14B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-14B-Instruct-abliterated.Q3_K_M.gguf"
     }
 ]

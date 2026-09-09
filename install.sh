@@ -53,15 +53,15 @@ if [ "$MISSING_GIT" = "1" ] || [ "$MISSING_PY" = "1" ] || [ "$VENV_TEST" = "1" ]
     if command -v apt-get >/dev/null 2>&1; then
         echo -e "${DIM}Running apt update & install...${RESET}"
         $SUDO_EXEC apt-get update -y
-        $SUDO_EXEC apt-get install -y git curl python3 python3-pip python3-venv
+        $SUDO_EXEC apt-get install -y git curl python3 python3-pip python3-venv mpv ffmpeg
     elif command -v dnf >/dev/null 2>&1; then
-        $SUDO_EXEC dnf install -y git curl python3 python3-pip
+        $SUDO_EXEC dnf install -y git curl python3 python3-pip mpv ffmpeg
     elif command -v pacman >/dev/null 2>&1; then
-        $SUDO_EXEC pacman -Sy --noconfirm git curl python python-pip
+        $SUDO_EXEC pacman -Sy --noconfirm git curl python python-pip mpv ffmpeg
     elif command -v apk >/dev/null 2>&1; then
-        $SUDO_EXEC apk add --no-cache git curl python3 py3-pip
+        $SUDO_EXEC apk add --no-cache git curl python3 py3-pip mpv ffmpeg
     elif command -v zypper >/dev/null 2>&1; then
-        $SUDO_EXEC zypper in -y git curl python3 python3-pip
+        $SUDO_EXEC zypper in -y git curl python3 python3-pip mpv ffmpeg
     fi
 fi
 

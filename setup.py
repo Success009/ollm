@@ -6,8 +6,10 @@ setup(
     description="Minimalist, high-efficiency offline LLM CLI with recursive tool execution",
     packages=find_packages(),
     python_requires=">=3.10",
-    install_requires=[
+        install_requires=[
         "llama-cpp-python>=0.3.0",
+        "rich>=13.0.0",
+        "edge-tts>=7.0.0",
     ],
     entry_points={
         "console_scripts": [

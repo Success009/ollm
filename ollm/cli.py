@@ -5,22 +5,82 @@ import os
 import sys
 import gc
 import argparse
+import subprocess
 from typing import Optional
 
-from .config import (
-    OLLMConfig,
-    find_available_model,
-    COLOR_PROMPT,
-    COLOR_RESET,
-    COLOR_DIM,
-    COLOR_ERR,
-    COLOR_TOOL,
-    COLOR_BOLD
-)
-from .menu import select_model_interactive, KNOWN_MODELS, get_models_dir
-from .tools import registry, load_custom_tools
-from .engine import InferenceEngine
-from .agent import Agent
+def record_from_microphone() -> Optional[str]:
+    """Records audio from system default microphone and queries speech-to-text."""
+    audio_file = "/tmp/voice.wav"
+    if os.path.exists(audio_file):
+        try:
+            os.remove(audio_file)
+        except OSError:
+            pass
+
+    print(f"\n{COLOR_TOOL}🎤 Recording from mic... [Press Enter to finish and send]{COLOR_RESET}")
+    proc = None
+    try:
+        # Start ffmpeg or arecord
+        if subprocess.run(["which", "ffmpeg"], stdout=subprocess.DEVNULL).returncode == 0:
+            proc = subprocess.Popen(
+                ["ffmpeg", "-y", "-f", "alsa", "-i", "default", "-ac", "1", "-ar", "16000", audio_file],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            )
+        elif subprocess.run(["which", "arecord"], stdout=subprocess.DEVNULL).returncode == 0:
+            proc = subprocess.Popen(
+                ["arecord", "-D", "default", "-f", "cd", "-t", "wav", audio_file],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            )
+        else:
+            print(f"{COLOR_ERR}Error: Neither ffmpeg nor arecord found for audio recording.{COLOR_RESET}")
+            return None
+
+        # Wait for user to press Enter to stop
+        input()
+    except (KeyboardInterrupt, EOFError):
+        pass
+    finally:
+        if proc:
+            proc.terminate()
+            try:
+                proc.wait(timeout=0.5)
+            except Exception:
+                proc.kill()
+
+    if not os.path.exists(audio_file) or os.path.getsize(audio_file) < 1000:
+        print(f"{COLOR_DIM}[No audio captured]{COLOR_RESET}\n")
+        return None
+
+    # Transcribe: check whisper socket first
+    text = ""
+    if os.path.exists("/tmp/whisper_socket"):
+        try:
+            import socket
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.settimeout(10.0)
+            s.connect("/tmp/whisper_socket")
+            s.sendall(b"go")
+            text = s.recv(4096).decode("utf-8").strip()
+            s.close()
+        except Exception:
+            pass
+
+    # Fallback to faster-whisper if installed
+    if not text:
+        try:
+            from faster_whisper import WhisperModel
+            w_model = WhisperModel("base.en", device="cpu", compute_type="int8")
+            segments, _ = w_model.transcribe(audio_file, beam_size=1)
+            text = " ".join([seg.text for seg in segments]).strip()
+        except Exception:
+            pass
+
+    if text:
+        print(f"{COLOR_BOLD}🎤 Transcribed:{COLOR_RESET} {text}\n")
+        return text
+    else:
+        print(f"{COLOR_DIM}[No speech detected]{COLOR_RESET}\n")
+        return None
 
 def resolve_model_arg(arg: Optional[str]) -> Optional[str]:
     """Resolves short aliases (3b, 8b) or file paths to absolute model path."""
@@ -110,8 +170,8 @@ def main():
         model_name = os.path.basename(model_path)
         voice_tag = f" {COLOR_TOOL}[Voice: ON]{COLOR_RESET}" if config.enable_voice else ""
         print(f"{COLOR_DIM}ollm ready :: {model_name} (threads: {config.threads}){voice_tag}{COLOR_RESET}")
-        print(f"{COLOR_DIM}Commands: /model (hot-swap), /voice (toggle talk-back), /tools, /reset, /exit{COLOR_RESET}")
-        print(f"{COLOR_DIM}Voice Input: Hold [Right Shift] to speak, release to send.{COLOR_RESET}\n")
+        print(f"{COLOR_DIM}Commands: /model (hot-swap), /voice (talk-back), /mic (voice input), /tools, /history, /exit{COLOR_RESET}")
+        print(f"{COLOR_DIM}Voice Input: Type /mic or hold [Right Shift] anywhere to speak.{COLOR_RESET}\n")
 
     while True:
         try:
@@ -155,6 +215,11 @@ def main():
                 status = "ENABLED" if is_active else "DISABLED"
                 color = COLOR_TOOL if is_active else COLOR_DIM
                 print(f"{color}[Voice talk-back {status}]{COLOR_RESET} (Speaks responses sentence-by-sentence in background)")
+                continue
+            elif user_input in ("/mic", "/talk"):
+                heard = record_from_microphone()
+                if heard:
+                    agent.execute_turn(heard)
                 continue
             elif user_input in ("/history", "/h"):
                 with agent._lock:
