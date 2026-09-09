@@ -3,6 +3,7 @@ Autonomous multi-step agent runtime for OLLM with background context compression
 Handles sliding window summarization and dynamic on-demand tool activation.
 """
 import sys
+import re
 import threading
 from typing import List, Dict, Optional
 from .config import (
@@ -15,49 +16,7 @@ from .config import (
 )
 from .tools import registry, parse_and_execute, load_custom_tools
 from .engine import InferenceEngine
-
-class StreamingANSIFormatter:
-    """Stateful streaming filter that formats markdown (bolding, inline code) directly to terminal ANSI styles."""
-    def __init__(self):
-        self.buf = ""
-        self.bold = False
-        self.code = False
-
-    def feed(self, text: str) -> str:
-        self.buf += text
-        out = []
-        i = 0
-        n = len(self.buf)
-        while i < n:
-            # Check for double asterisk (bold)
-            if self.buf[i:i+2] == "**":
-                self.bold = not self.bold
-                out.append("\033[1m" if self.bold else "\033[22m")
-                i += 2
-                continue
-            # Check for backtick (inline code)
-            elif self.buf[i] == "`":
-                self.code = not self.code
-                out.append("\033[38;5;180m" if self.code else "\033[0m")
-                i += 1
-                continue
-            # Retain trailing single asterisk if at end of buffer (may complete next token)
-            elif i == n - 1 and self.buf[i] == "*":
-                break
-            else:
-                out.append(self.buf[i])
-                i += 1
-        self.buf = self.buf[i:]
-        return "".join(out)
-
-    def flush(self) -> str:
-        res = self.buf
-        if self.bold:
-            res += "\033[22m"
-        if self.code:
-            res += "\033[0m"
-        self.buf = ""
-        return res
+from .voice import StreamingVoiceEngine
 
 class Agent:
     def __init__(self, config: OLLMConfig, engine: InferenceEngine):
@@ -65,6 +24,7 @@ class Agent:
         self.engine = engine
         self.history: List[Dict[str, str]] = []
         self.tools_enabled = config.enable_tools
+        self.voice = StreamingVoiceEngine(enabled=config.enable_voice)
         self._compressing = False
         self._turns_since_compress = 0
         self._lock = threading.Lock()
@@ -184,6 +144,9 @@ class Agent:
         Executes a turn. Streams tokens with live formatting, supports Ctrl+C interruption,
         optionally dispatches tools if enabled, and triggers background context compression.
         """
+                # Halt any active voice playback from prior turns
+        self.voice.stop()
+
         with self._lock:
             self.history.append({"role": "user", "content": user_prompt})
 
@@ -199,8 +162,9 @@ class Agent:
 
             formatter = StreamingANSIFormatter()
             interrupted = False
+            sentence_buf = ""
 
-            # Stream generation with formatting and Ctrl+C interrupt handling
+            # Stream generation with formatting, voice chunking, and Ctrl+C interrupt handling
             try:
                 for token in self.engine.stream_chat(snapshot):
                     accumulated_tokens.append(token)
@@ -211,13 +175,31 @@ class Agent:
                         if rendered:
                             sys.stdout.write(rendered)
                             sys.stdout.flush()
+
+                    # Real-time sentence chunking for voice synthesis
+                    if self.voice.enabled:
+                        sentence_buf += token
+                        m = re.search(r'([.!?\n]+(?:\s+|$))', sentence_buf)
+                        if m and len(sentence_buf) >= 12:
+                            end_pos = m.end()
+                            chunk = sentence_buf[:end_pos]
+                            sentence_buf = sentence_buf[end_pos:]
+                            self.voice.feed_sentence(chunk)
+
                 if not stream_callback:
                     flushed = formatter.flush()
                     if flushed:
                         sys.stdout.write(flushed)
                         sys.stdout.flush()
+
+                # Flush final sentence remainder to voice pipeline
+                if self.voice.enabled and sentence_buf.strip():
+                    self.voice.feed_sentence(sentence_buf.strip())
+                    sentence_buf = ""
+
             except KeyboardInterrupt:
                 interrupted = True
+                self.voice.stop()
                 if not stream_callback:
                     sys.stdout.write(f"\033[0m\n{COLOR_DIM}[interrupted]{COLOR_RESET}\n")
                     sys.stdout.flush()

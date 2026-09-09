@@ -46,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-s", "--max-steps", type=int, default=8, help="Max recursive tool hops (default: 8)")
     parser.add_argument("-q", "--quiet", action="store_true", help="Suppress status indicators")
     parser.add_argument("--tools", action="store_true", help="Enable XML tool execution")
+    parser.add_argument("--voice", action="store_true", help="Enable parallel real-time voice speech output")
     parser.add_argument("--list-tools", action="store_true", help="List registered tools and exit")
     return parser
 def main():
@@ -87,37 +88,30 @@ def main():
         ctx_size=args.ctx,
         max_steps=args.max_steps,
         enable_tools=args.tools,
+        enable_voice=args.voice,
         quiet=args.quiet
     )
-    if not config.quiet:
-        print(f"{COLOR_DIM}Loading {os.path.basename(model_path)} into memory...{COLOR_RESET}")
 
-    try:
-        engine = InferenceEngine(config)
-    except Exception as e:
-        print(f"{COLOR_ERR}Engine initialization failed: {e}{COLOR_RESET}", file=sys.stderr)
-        sys.exit(1)
-
+    engine = InferenceEngine(config)
     agent = Agent(config, engine)
 
-    # Case 1: Single-shot execution
-    if args.prompt or piped_data:
-        user_query = " ".join(args.prompt).strip()
-        if piped_data and user_query:
-            combined = f"{user_query}\n\n[Input Data]:\n{piped_data}"
-        elif piped_data:
-            combined = piped_data
+    # Case 1: Piped UNIX stream or CLI positional arguments
+    if piped_data or args.prompt:
+        user_query = " ".join(args.prompt)
+        if piped_data:
+            full_prompt = f"{piped_data}\n\n{user_query}" if user_query else piped_data
         else:
-            combined = user_query
-
-        agent.execute_turn(combined)
+            full_prompt = user_query
+        agent.execute_turn(full_prompt)
         return
 
     # Case 2: Interactive REPL
     if not config.quiet:
         model_name = os.path.basename(model_path)
-        print(f"{COLOR_DIM}ollm ready :: {model_name} (threads: {config.threads}){COLOR_RESET}")
-        print(f"{COLOR_DIM}Commands: /model (hot-swap), /reset, /tools, /exit{COLOR_RESET}\n")
+        voice_tag = f" {COLOR_TOOL}[Voice: ON]{COLOR_RESET}" if config.enable_voice else ""
+        print(f"{COLOR_DIM}ollm ready :: {model_name} (threads: {config.threads}){voice_tag}{COLOR_RESET}")
+        print(f"{COLOR_DIM}Commands: /model (hot-swap), /voice (toggle talk-back), /tools, /reset, /exit{COLOR_RESET}")
+        print(f"{COLOR_DIM}Voice Input: Hold [Right Shift] to speak, release to send.{COLOR_RESET}\n")
 
     while True:
         try:
@@ -155,6 +149,12 @@ def main():
             elif user_input in ("/notools", "/tools off"):
                 status = agent.disable_tools()
                 print(f"{COLOR_DIM}{status}{COLOR_RESET}")
+                continue
+            elif user_input in ("/voice", "/v"):
+                is_active = agent.voice.toggle()
+                status = "ENABLED" if is_active else "DISABLED"
+                color = COLOR_TOOL if is_active else COLOR_DIM
+                print(f"{color}[Voice talk-back {status}]{COLOR_RESET} (Speaks responses sentence-by-sentence in background)")
                 continue
             elif user_input in ("/history", "/h"):
                 with agent._lock:

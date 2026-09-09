@@ -39,11 +39,17 @@ class InferenceEngine:
         self.config = config
         self.lock = threading.Lock()
 
-        # Initialize llama with CPU optimizations
+                # Check for GPU capability and configure layer offload
+        from .menu import get_system_specs
+        specs = get_system_specs()
+        n_gpu_layers = -1 if specs.get("has_gpu") else 0
+
+        # Initialize llama with CPU/GPU optimizations
         self.llm = Llama(
             model_path=config.model_path,
             n_ctx=config.ctx_size,
             n_threads=config.threads,
+            n_gpu_layers=n_gpu_layers,
             n_batch=512,
             use_mmap=True,
             use_mlock=False,
