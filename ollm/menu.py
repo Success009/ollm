@@ -54,6 +54,7 @@ def get_system_specs() -> Dict[str, Any]:
     }
 
 KNOWN_MODELS = [
+    # --- 1B - 2B Ultra-Light Class (Runs on <2GB RAM) ---
     {
         "id": "1b",
         "name": "Llama-3.2-1B-Instruct (Q4_K_M)",
@@ -72,6 +73,8 @@ KNOWN_MODELS = [
         "desc": "Alibaba Qwen-2.5 1.54B Params │ 4-bit Medium │ Math, code & dense logic specialist",
         "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf"
     },
+
+    # --- 3B - 4B Everyday Class (Runs on 4GB+ RAM) ---
     {
         "id": "3b",
         "name": "Llama-3.2-3B-Instruct-abliterated (Q4_K_M)",
@@ -81,6 +84,17 @@ KNOWN_MODELS = [
         "desc": "Meta Llama-3.2 3.21B Params │ Abliterated / Uncensored │ Fast everyday companion",
         "url": "https://huggingface.co/mradermacher/Llama-3.2-3B-Instruct-abliterated-GGUF/resolve/main/Llama-3.2-3B-Instruct-abliterated.Q4_K_M.gguf"
     },
+    {
+        "id": "phi3.5",
+        "name": "Phi-3.5-mini-instruct (Q4_K_M)",
+        "file": "Phi-3.5-mini-instruct-Q4_K_M.gguf",
+        "size": "~2.3 GB",
+        "req_ram": 3.8,
+        "desc": "Microsoft Phi-3.5 3.82B Params │ Dense multi-step reasoning & math",
+        "url": "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf"
+    },
+
+    # --- 7B - 8B Mid-Tier Workhorses (Runs on 8GB+ RAM) ---
     {
         "id": "8b",
         "name": "Llama-3.1-8B-Instruct-abliterated (Q3_K_M)",
@@ -96,8 +110,17 @@ KNOWN_MODELS = [
         "file": "Mistral-7B-Instruct-v0.3-abliterated.Q4_K_M.gguf",
         "size": "~4.3 GB",
         "req_ram": 6.5,
-        "desc": "Mistral AI 7.25B Params │ Abliterated / Uncensored │ High-grade European flagship",
+        "desc": "Mistral AI 7.25B Params │ Abliterated / Uncensored │ Flagship European reasoning",
         "url": "https://huggingface.co/mradermacher/Mistral-7B-Instruct-v0.3-abliterated-GGUF/resolve/main/Mistral-7B-Instruct-v0.3-abliterated.Q4_K_M.gguf"
+    },
+    {
+        "id": "hermes8b",
+        "name": "Hermes-3-Llama-3.1-8B (Q4_K_M)",
+        "file": "Hermes-3-Llama-3.1-8B.Q4_K_M.gguf",
+        "size": "~4.9 GB",
+        "req_ram": 6.5,
+        "desc": "NousResearch Hermes-3 8B │ Advanced agentic roleplay & unaligned reasoning",
+        "url": "https://huggingface.co/NousResearch/Hermes-3-Llama-3.1-8B-GGUF/resolve/main/Hermes-3-Llama-3.1-8B.Q4_K_M.gguf"
     },
     {
         "id": "r1",
@@ -108,14 +131,72 @@ KNOWN_MODELS = [
         "desc": "DeepSeek R1 Reasoning Model │ Chain-of-thought tokens │ Deep analysis & math",
         "url": "https://huggingface.co/mradermacher/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B.Q4_K_M.gguf"
     },
+
+    # --- 12B - 14B Heavy Reasoning (Runs on 12GB - 16GB RAM) ---
+    {
+        "id": "nemo12b",
+        "name": "Mistral-Nemo-12B-abliterated (Q4_K_M)",
+        "file": "Mistral-Nemo-Instruct-2407-abliterated.Q4_K_M.gguf",
+        "size": "~7.5 GB",
+        "req_ram": 9.5,
+        "desc": "Mistral AI + NVIDIA 12.2B Params │ Abliterated │ 128k context & precision coding",
+        "url": "https://huggingface.co/mradermacher/Mistral-Nemo-Instruct-2407-abliterated-GGUF/resolve/main/Mistral-Nemo-Instruct-2407-abliterated.Q4_K_M.gguf"
+    },
     {
         "id": "14b",
         "name": "Qwen-2.5-14B-Instruct-abliterated (Q3_K_M)",
         "file": "Qwen2.5-14B-Instruct-abliterated.Q3_K_M.gguf",
         "size": "~7.5 GB",
-        "req_ram": 10.5,
-        "desc": "Qwen-2.5 14.77B Heavy Expert │ Abliterated │ Production-grade software architecture",
+        "req_ram": 10.0,
+        "desc": "Alibaba Qwen-2.5 14.77B Params │ Abliterated │ Elite code generation & logic",
         "url": "https://huggingface.co/mradermacher/Qwen2.5-14B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-14B-Instruct-abliterated.Q3_K_M.gguf"
+    },
+    {
+        "id": "14b-q4",
+        "name": "Qwen-2.5-14B-Instruct-abliterated (Q4_K_M)",
+        "file": "Qwen2.5-14B-Instruct-abliterated.Q4_K_M.gguf",
+        "size": "~9.0 GB",
+        "req_ram": 11.5,
+        "desc": "Alibaba Qwen-2.5 14.77B Params │ 4-bit High Fidelity │ Maximum 14B accuracy",
+        "url": "https://huggingface.co/mradermacher/Qwen2.5-14B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-14B-Instruct-abliterated.Q4_K_M.gguf"
+    },
+
+    # --- 24B - 32B Flagship Giants (Runs on 16GB+ RAM / High VRAM) ---
+    {
+        "id": "mistral24b",
+        "name": "Mistral-Small-24B-Instruct-abliterated (Q3_K_M)",
+        "file": "Mistral-Small-24B-Instruct-2501-abliterated.Q3_K_M.gguf",
+        "size": "~11.2 GB",
+        "req_ram": 13.5,
+        "desc": "Mistral AI 24B Flagship │ Abliterated │ Massive reasoning power for 16GB systems",
+        "url": "https://huggingface.co/mradermacher/Mistral-Small-24B-Instruct-2501-abliterated-GGUF/resolve/main/Mistral-Small-24B-Instruct-2501-abliterated.Q3_K_M.gguf"
+    },
+    {
+        "id": "gemma27b",
+        "name": "Gemma-2-27B-IT-abliterated (Q3_K_M)",
+        "file": "gemma-2-27b-it-abliterated.Q3_K_M.gguf",
+        "size": "~12.5 GB",
+        "req_ram": 14.5,
+        "desc": "Google DeepMind 27B Params │ Abliterated │ Outstanding benchmark performance",
+        "url": "https://huggingface.co/mradermacher/gemma-2-27b-it-abliterated-GGUF/resolve/main/gemma-2-27b-it-abliterated.Q3_K_M.gguf"
+    },
+    {
+        "id": "32b-q2",
+        "name": "Qwen-2.5-32B-Instruct-abliterated (Q2_K)",
+        "file": "Qwen2.5-32B-Instruct-abliterated.Q2_K.gguf",
+        "size": "~11.5 GB",
+        "req_ram": 13.5,
+        "desc": "Qwen-2.5 32.5B Giant │ Compressed 2-bit │ Runs huge 32B model on 16GB RAM machines",
+        "url": "https://huggingface.co/mradermacher/Qwen2.5-32B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-32B-Instruct-abliterated.Q2_K.gguf"
+    },
+    {
+        "id": "32b-q3",
+        "name": "Qwen-2.5-32B-Instruct-abliterated (Q3_K_M)",
+        "file": "Qwen2.5-32B-Instruct-abliterated.Q3_K_M.gguf",
+        "size": "~14.2 GB",
+        "req_ram": 15.5,
+        "desc": "Qwen-2.5 32.5B Giant │ 3-bit Medium │ Frontier-level reasoning (Requires 16GB RAM)",
+        "url": "https://huggingface.co/mradermacher/Qwen2.5-32B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-32B-Instruct-abliterated.Q3_K_M.gguf"
     }
 ]
 
@@ -172,9 +253,10 @@ def download_model(model_info: Dict[str, Any]) -> str:
 
 def select_model_interactive(current_file: Optional[str] = None) -> Optional[str]:
     """
-    Renders an interactive spec-aware menu navigated via j/k/l/Enter.
+    Renders an interactive spec-aware menu navigated via j/k/l/Enter with a smooth scrolling viewport.
     Locks models exceeding available RAM with clear warnings and recommendations.
     """
+    import shutil
     specs = get_system_specs()
     ram_gb = specs["ram_gb"]
     gpu_desc = f"{specs['gpu_name']} ({specs['gpu_vram_gb']:.1f}GB VRAM)" if specs["has_gpu"] else "CPU Mode"
@@ -199,7 +281,7 @@ def select_model_interactive(current_file: Optional[str] = None) -> Optional[str
         m["installed"] = found_path is not None
         m["locked"] = ram_gb < m.get("req_ram", 4.0)
 
-    # Determine recommended model (highest tier model that fits comfortably within 70% of RAM)
+    # Determine recommended model (highest tier model that fits comfortably within 75% of RAM)
     recommended_idx = 0
     for idx, m in enumerate(KNOWN_MODELS):
         if m.get("req_ram", 4.0) <= ram_gb * 0.75:
@@ -223,11 +305,26 @@ def select_model_interactive(current_file: Optional[str] = None) -> Optional[str
     total = len(KNOWN_MODELS)
 
     def render():
+        # Terminal height-aware viewport
+        term_lines = shutil.get_terminal_size((80, 24)).lines
+        visible_count = max(4, min(6, (term_lines - 7) // 2))
+
+        # Viewport windowing around selected_idx
+        start_idx = max(0, min(selected_idx - visible_count // 2, total - visible_count))
+        end_idx = min(total, start_idx + visible_count)
+
         output = [
-            f"\n{COLOR_BOLD}OLLM Model Hub{COLOR_RESET} {COLOR_DIM}│ System: {ram_gb:.1f}GB RAM, {gpu_desc}{COLOR_RESET}",
-            f"{COLOR_DIM}(j/k to move, Enter to select, q to exit){COLOR_RESET}\n"
+            f"\n{COLOR_BOLD}OLLM Model Hub{COLOR_RESET} {COLOR_DIM}│ Hardware: {ram_gb:.1f}GB RAM, {gpu_desc} │ [{selected_idx + 1}/{total}]{COLOR_RESET}",
+            f"{COLOR_DIM}(j/k to navigate, Enter to load, q to exit){COLOR_RESET}"
         ]
-        for idx, m in enumerate(KNOWN_MODELS):
+
+        if start_idx > 0:
+            output.append(f"   {COLOR_DIM}▲ ({start_idx} smaller models above){COLOR_RESET}")
+        else:
+            output.append("")
+
+        for idx in range(start_idx, end_idx):
+            m = KNOWN_MODELS[idx]
             if m["installed"]:
                 status = f"{COLOR_DIM}[Downloaded]{COLOR_RESET}"
             elif m["locked"]:
@@ -241,6 +338,10 @@ def select_model_interactive(current_file: Optional[str] = None) -> Optional[str
             name_str = f"{COLOR_BOLD}{m['name']}{COLOR_RESET}" if idx == selected_idx else m['name']
             output.append(f" {marker} [{idx + 1}] {name_str} - {m['size']} {status}")
             output.append(f"       {COLOR_DIM}↳ {m['desc']}{COLOR_RESET}")
+
+        if end_idx < total:
+            output.append(f"   {COLOR_DIM}▼ ({total - end_idx} larger models below){COLOR_RESET}")
+
         return "\n".join(output)
 
     try:
