@@ -132,21 +132,36 @@ class StreamingVoiceEngine:
                         pass
 
     def _render_audio(self, text: str, output_path: str) -> bool:
-        """Attempts neural synthesis via edge-tts, with fallback to local spd-say."""
+        """Attempts neural synthesis via edge-tts with short timeout, falling back immediately to offline pyttsx3 or spd-say."""
+        # Fast check if edge-tts can reach network within 1.5s
         try:
             import edge_tts
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
                 comm = edge_tts.Communicate(text, self.voice)
-                loop.run_until_complete(comm.save(output_path))
-                return True
+                loop.run_until_complete(asyncio.wait_for(comm.save(output_path), timeout=1.5))
+                if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                    return True
             finally:
                 loop.close()
         except Exception:
             pass
 
-        # Offline fallback: spd-say
+        # 100% Offline fallback 1: pyttsx3 to WAV file
+        try:
+            import pyttsx3
+            engine = pyttsx3.init()
+            wav_path = output_path.replace(".mp3", ".wav")
+            engine.save_to_file(text, wav_path)
+            engine.runAndWait()
+            if os.path.exists(wav_path) and os.path.getsize(wav_path) > 0:
+                os.replace(wav_path, output_path)
+                return True
+        except Exception:
+            pass
+
+        # 100% Offline fallback 2: spd-say (direct system speech)
         try:
             if subprocess.run(["which", "spd-say"], stdout=subprocess.DEVNULL).returncode == 0:
                 subprocess.Popen(["spd-say", "-r", "10", text], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

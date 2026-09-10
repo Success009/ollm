@@ -8,6 +8,21 @@ import argparse
 import subprocess
 from typing import Optional
 
+from .config import (
+    OLLMConfig,
+    find_available_model,
+    COLOR_PROMPT,
+    COLOR_RESET,
+    COLOR_DIM,
+    COLOR_ERR,
+    COLOR_TOOL,
+    COLOR_BOLD
+)
+from .menu import select_model_interactive, KNOWN_MODELS, get_models_dir
+from .tools import registry, load_custom_tools
+from .engine import InferenceEngine
+from .agent import Agent
+
 def record_from_microphone() -> Optional[str]:
     """Records audio from system default microphone and queries speech-to-text."""
     audio_file = "/tmp/voice.wav"
